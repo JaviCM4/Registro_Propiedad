@@ -1,14 +1,14 @@
 ---------------------------------------------- Consulta No.1 ----------------------------------------------
-SELECT f1.no_finca AS finca1, f2.no_finca AS finca2, f1.nombre AS nombre_finca1, f2.nombre AS nombre_finca2
-FROM Inscripcion_Finca f1
-JOIN Inscripcion_Finca f2 ON f1.no_finca < f2.no_finca
-WHERE EXISTS (
-    SELECT 1 
-    FROM Coordenada c1
-    JOIN Coordenada c2 ON c1.no_finca = f1.no_finca AND c2.no_finca = f2.no_finca
-    WHERE ABS(c1.latitud - c2.latitud) < 10 AND ABS(c1.longitud - c2.longitud) < 10
-)
-ORDER BY f1.no_finca;
+SELECT i.no_finca, i.nombre, COUNT(p.id) AS numero_propietarios, 
+       MAX(p.fecha_registro) AS fecha_ultimo_registro
+FROM 
+    Inscripcion_Finca i
+LEFT JOIN 
+    Propietario p ON i.no_finca = p.no_finca
+GROUP BY 
+    i.no_finca, i.nombre
+ORDER BY 
+    numero_propietarios DESC;
 
 
 
@@ -51,9 +51,9 @@ JOIN
 WHERE 
     a.id_tipo_accion = 4 AND a.estado = 'Finalizado'
 GROUP BY 
-    a.no_finca, f.nombre, m.nombre
+    a.id, a.no_finca, f.nombre, m.nombre
 ORDER BY 
-    num_cambios_propietario DESC;
+    num_cambios_propietario DESC;;
 
 
 
@@ -81,7 +81,6 @@ WHERE
 
 
 ---------------------------------------------- Consulta No.5 ----------------------------------------------
-
 SELECT
     l.id,
     l.no_finca,
@@ -102,58 +101,22 @@ WHERE
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-SELECT 
-    d.id AS id_desmembracion,
-    d.no_finca_matriz,
+---------------------------------------------- Consulta No.6 ----------------------------------------------
+SELECT
+    a.id,
     matriz.nombre AS nombre_finca_matriz,
-    d.no_finca_nueva,
+    matriz.area AS area_finca_matriz,
     nueva.nombre AS nombre_finca_nueva,
-    d.observaciones
+    nueva.area AS area_finca_nueva
 FROM 
-    Desmembracion d
+    Accion a
+JOIN 
+    Desmembracion d ON a.id = d.id_acciones
 JOIN 
     Inscripcion_Finca matriz ON d.no_finca_matriz = matriz.no_finca
 JOIN 
     Inscripcion_Finca nueva ON d.no_finca_nueva = nueva.no_finca
 WHERE 
-    d.id = 2;
+    a.id_tipo_accion = 2 
+    AND a.estado = 'Finalizado'
+    AND nueva.area > matriz.area;
